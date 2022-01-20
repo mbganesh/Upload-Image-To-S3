@@ -9,12 +9,11 @@ export default function UploadToS3() {
   
     const handleUpload = () => {
       let img = HelpersF.img
-      console.log(img);
       axios.post('http://localhost:8080/users/upload-image' , {user:'admin' , base64Image : img})
     }
 
     const handleView = () => {
-        let fileKey = "file1"
+        let fileKey = "tempDir/tempImg6"
         axios.post('http://localhost:8080/users/view-image' , {user:'admin' , fileKey:fileKey}).then ( (response)=> {
           var res = response.data.message
           console.log(res);
@@ -23,8 +22,20 @@ export default function UploadToS3() {
     }
 
     const handleDelete = () => {
-        
+        let fileKey = "tempDir/tempImg5";
+        axios.post('http://localhost:8080/users/delete-image' , {fileKey:fileKey}).then (response => {
+          console.log(response.data)
+          setImage("")
+        })
     }
+
+    const handleDeleteAll = () => {
+      let fileKey = "tempDir/";
+      axios.post('http://localhost:8080/users/delete-all-image' , {fileKey:fileKey}).then (response => {
+        console.log(response.data)
+        setImage("")
+      })
+  }
 
   return (
     <div style={{ display:'flex' , flexDirection:'column' , height:'100vh' , backgroundColor:'#ddd' }}>
@@ -50,6 +61,8 @@ export default function UploadToS3() {
          <Button variant="contained" style={{ color:'white' ,backgroundColor:'orange'}} onClick={() => handleView()} >View Image</Button>
 
          <Button variant="contained" style={{ color:'white' ,backgroundColor:'red'}} onClick={() => handleDelete()} >Delete Image</Button>
+
+         <Button variant="contained" style={{ color:'white' ,backgroundColor:'red'}} onClick={() => handleDeleteAll()} >Delete All Image</Button>
      </div>
 
 

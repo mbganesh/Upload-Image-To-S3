@@ -1,66 +1,53 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
 
-const multer  = require('multer')
-const upload = multer({ dest: 'uploads/' })
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
 
-const { uploadFile , uploadFileToS3 , getFileStream , deleteFile, viewFileFromS3} = require('../s3')
-
-
-
-router.get('/images/:key' , (req , res)=> {
-  const key = req.params.key
-  const readStream = getFileStream(key)
-  console.log(readStream);
-  readStream.pipe(res)
-})
-
-router.get('/image-delete/:key' , (req , res)=> {
-  const key = req.params.key
-  const deleteFi = deleteFile(key)
-
-  console.log(deleteFi);
-
-  // readStream.pipe(res)
-})
-
-
-router.post('/images' , upload.single('image') , async (req , res) => {
-
-  const file = req.file
-  // console.log(file);
-  const result = await uploadFile(file)
-
-  console.log(result.key);
-
-  const description = req.body.description
-
-  res.json({key:result['key']})
-})
+const {
+  uploadFileToS3,
+  getFileStream,
+  deleteFile,
+  deleteAllFile
+} = require("../s3");
 
 
 // newbieeee
 
-router.post('/upload-image' , upload.single('image') , async (req , res) => {
+function generateRandomStr(len) {
+  var rdmString = "";
+  for( ; rdmString.length < len; rdmString  += Math.random().toString(36).substring(2));
+  return  rdmString.substr(0, len);
 
+}
+
+router.post("/upload-image", upload.single("image"), async (req, res) => {
   var recievedData = req.body;
 
-  const result = await uploadFileToS3(recievedData['base64Image'])
-  
+  var result ;
+  for (let i = 0; i < 10; i++) {
+    result = await uploadFileToS3(recievedData["base64Image"] , generateRandomStr(5) );
+  }
   console.log(result);
+  res.json({ success: true });
+});
 
-  res.json({success:true})
-
-})
-
-router.post('/view-image' , async (req , res) => {
-
+router.post("/view-image", async (req, res) => {
   var recievedData = req.body;
-  const result = getFileStream(recievedData['fileKey'])
- res.json({success:true, message:result})
+  const result = getFileStream(recievedData["fileKey"]);
+  res.json({ success: true, message: result });
+});
 
+router.post("/delete-image", async (req, res) => {
+  const result = deleteFile(req.body.fileKey);
+  console.log(result + "xxxxxx");
+  res.json({ success: true, message: result });
+});
+
+router.post('/delete-all-image' , async ( req , res ) => {
+  console.log(req.body); // { fileKey: 'tempDir/' }
+  const result = deleteAllFile(req.body.fileKey)
+  res.json({ success: true, message: result });
 })
-
-
 
 module.exports = router;
